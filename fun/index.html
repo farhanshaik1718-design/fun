@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A little question for you</title>
+<meta name="description" content="A small surprise, just for you.">
+<meta name="theme-color" content="#ffe3ec">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="A little question for you 💌">
+<meta property="og:description" content="I made something small, just for you.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💖%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #ffe3ec;
+    --bg2: #fff3f7;
+    --pink: #ff6b9a;
+    --pink-deep: #e0467c;
+    --rose-soft: #ffd1e0;
+    --ink: #5a2a3d;
+    --ink-soft: #8d5a6e;
+    --card: #ffffff;
+    --shadow: 0 18px 40px rgba(224, 70, 124, .18), 0 4px 10px rgba(224, 70, 124, .08);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at 20% 10%, var(--bg2), var(--bg1) 70%);
+    display: grid; place-items: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+  #hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .float-heart {
+    position: absolute; bottom: -40px; opacity: .5;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    to { transform: translateY(-115vh) rotate(25deg); opacity: 0; }
+  }
+  .card {
+    position: relative; z-index: 1;
+    width: min(440px, 100%);
+    min-height: 380px;
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: 36px 26px 30px;
+    text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+  }
+  .stage { display: none; width: 100%; flex-direction: column; align-items: center; gap: 16px; }
+  .stage.active { display: flex; animation: fade .6s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .emoji { font-size: 64px; line-height: 1; }
+  h1 { font-family: "Pacifico", cursive; font-weight: 400; font-size: clamp(28px, 7vw, 36px); color: var(--pink-deep); line-height: 1.3; }
+  p { font-size: 18px; line-height: 1.5; color: var(--ink-soft); max-width: 32ch; }
+  .progress { font-size: 14px; color: var(--pink-deep); font-weight: 500; }
+  h2 { font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+
+  button {
+    font: inherit; font-weight: 500; cursor: pointer; border: 0;
+    border-radius: 999px; padding: 14px 28px; font-size: 18px;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:focus-visible { outline: 3px solid var(--pink-deep); outline-offset: 3px; }
+  .primary { background: var(--pink); color: #fff; box-shadow: 0 8px 18px rgba(255, 107, 154, .4); }
+  .primary:hover { background: var(--pink-deep); transform: translateY(-2px); }
+  .primary:active { transform: scale(.97); }
+
+  .choices { display: grid; gap: 10px; width: 100%; }
+  .choice { background: #fff0f5; color: var(--ink); border: 2px solid var(--rose-soft); text-align: left; padding: 14px 18px; font-size: 17px; }
+  .choice:hover { border-color: var(--pink); background: #ffe6ef; transform: translateX(3px); }
+  .reply { min-height: 28px; color: var(--pink-deep); font-weight: 500; }
+
+  .answer-row { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; min-height: 120px; width: 100%; }
+  #yesBtn { --s: 1; transform: scale(var(--s)); font-size: 22px; padding: 16px 40px; transform-origin: center; }
+  #yesBtn:hover { transform: scale(calc(var(--s) * 1.06)); }
+  #noBtn { background: #f1e4e9; color: var(--ink-soft); }
+  #noBtn.run { position: fixed; z-index: 10; transition: left .25s ease, top .25s ease; }
+  .taunt { min-height: 24px; font-size: 15px; color: var(--ink-soft); }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+  .big-heart { animation: beat 1.2s ease-in-out infinite; }
+  @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .float-heart, .big-heart { animation: none; }
+    .stage.active { animation: none; }
+    #noBtn.run { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hearts" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main class="card">
+
+  <!-- Stage 1 -->
+  <section class="stage active" id="s1">
+    <div class="emoji big-heart">💌</div>
+    <h1 id="greeting">Hey you!</h1>
+    <p>I made something small, just for you. It takes about a minute.</p>
+    <button class="primary" data-next>Open it</button>
+  </section>
+
+  <!-- Stage 2 -->
+  <section class="stage" id="s2">
+    <div class="progress" id="progress"></div>
+    <h2 id="question"></h2>
+    <div class="choices" id="choices"></div>
+    <div class="reply" id="reply" aria-live="polite"></div>
+  </section>
+
+  <!-- Stage 3 -->
+  <section class="stage" id="s3">
+    <div class="emoji">🥺</div>
+    <h1 id="ask">Will you be my Valentine?</h1>
+    <div class="answer-row" id="answerRow">
+      <button class="primary" id="yesBtn">Yes!</button>
+      <button id="noBtn">No</button>
+    </div>
+    <div class="taunt" id="taunt" aria-live="polite"></div>
+  </section>
+
+  <!-- Stage 4 -->
+  <section class="stage" id="s4">
+    <div class="emoji big-heart">🎉</div>
+    <h1>She said yes!</h1>
+    <p id="finalMsg">You just made me the happiest person alive. I can't wait to start this adventure with you.</p>
+    <div class="emoji">💖</div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  // ====== EDIT ME ======
+  const CONFIG = {
+    name: "",                       // her name, e.g. "Priya" (leave empty to skip)
+    proposal: "Will you be my Valentine?",
+    finalMessage: "You just made me the happiest person alive. I can't wait to start this adventure with you."
+  };
+  // =====================
+
+  const $ = id => document.getElementById(id);
+  const stages = ["s1", "s2", "s3", "s4"].map($);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (CONFIG.name) $("greeting").textContent = "Hey " + CONFIG.name + "!";
+  $("ask").textContent = CONFIG.name ? CONFIG.proposal.replace(/\?$/, ", " + CONFIG.name + "?") : CONFIG.proposal;
+  $("finalMsg").textContent = CONFIG.finalMessage;
+
+  function show(i) {
+    stages.forEach((s, n) => s.classList.toggle("active", n === i));
+    if (i === 2) $("yesBtn").focus({ preventScroll: true });
+  }
+
+  // Floating background hearts
+  const heartBox = $("hearts");
+  const symbols = ["💗", "💕", "💖", "🌸"];
+  for (let i = 0; i < (reduceMotion ? 0 : 14); i++) {
+    const h = document.createElement("span");
+    h.className = "float-heart";
+    h.textContent = symbols[i % symbols.length];
+    h.style.left = Math.random() * 100 + "%";
+    h.style.fontSize = 14 + Math.random() * 22 + "px";
+    h.style.animationDuration = 9 + Math.random() * 10 + "s";
+    h.style.animationDelay = -Math.random() * 14 + "s";
+    heartBox.appendChild(h);
+  }
+
+  // Stage 1 -> 2
+  document.querySelector("[data-next]").addEventListener("click", () => { show(1); loadQuestion(); });
+
+  // Stage 2: vibe check
+  const quiz = [
+    { q: "Pick a perfect evening:", a: [
+      ["Cozy movie night 🍿", "Great taste. Blankets are mandatory."],
+      ["Late-night drive with music 🚗", "Windows down, volume up!"],
+      ["Street food adventure 🍜", "I'm already hungry."] ] },
+    { q: "Which snack wins?", a: [
+      ["Chocolate 🍫", "Correct. Sweet choice."],
+      ["Something spicy 🌶️", "Bold. I like it."],
+      ["Ice cream 🍦", "Always the right answer."] ] },
+    { q: "How are you feeling right now?", a: [
+      ["Curious 👀", "Good. Keep going."],
+      ["Suspicious 🤨", "Fair, but you're gonna like this."],
+      ["Smiling already 😊", "I can tell."] ] }
+  ];
+  let qi = 0, locked = false;
+
+  function loadQuestion() {
+    locked = false;
+    const cur = quiz[qi];
+    $("progress").textContent = "Vibe check " + (qi + 1) + " of " + quiz.length;
+    $("question").textContent = cur.q;
+    $("reply").textContent = "";
+    const box = $("choices");
+    box.innerHTML = "";
+    cur.a.forEach(([label, response]) => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        if (locked) return;
+        locked = true;
+        $("reply").textContent = response;
+        setTimeout(() => {
+          qi++;
+          if (qi < quiz.length) loadQuestion(); else show(2);
+        }, 1100);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  // Stage 3: the runaway No button
+  const yes = $("yesBtn"), no = $("noBtn"), taunt = $("taunt");
+  const taunts = [
+    "Nice try 😏", "Too slow!", "Are you sure?", "Hehe, can't catch me",
+    "That button is broken 🙃", "Please? 🥺", "Just press Yes already!",
+    "I'll wait all day…", "You know you want to 💕"
+  ];
+  let dodges = 0;
+
+  function dodge(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    dodges++;
+    taunt.textContent = taunts[(dodges - 1) % taunts.length];
+    yes.style.setProperty("--s", Math.min(1 + dodges * 0.08, 1.8));
+
+    const pad = 12;
+    const w = no.offsetWidth, h = no.offsetHeight;
+    const maxX = window.innerWidth - w - pad;
+    const maxY = window.innerHeight - h - pad;
+    const yr = yes.getBoundingClientRect();
+    const cur = no.getBoundingClientRect();
+    let x = pad, y = pad;
+
+    for (let t = 0; t < 40; t++) {
+      x = pad + Math.random() * Math.max(0, maxX - pad);
+      y = pad + Math.random() * Math.max(0, maxY - pad);
+      const overlapsYes = x < yr.right + 20 && x + w > yr.left - 20 && y < yr.bottom + 20 && y + h > yr.top - 20;
+      const farEnough = Math.hypot(x - cur.left, y - cur.top) > 140;
+      if (!overlapsYes && farEnough) break;
+    }
+    no.classList.add("run");
+    no.style.left = x + "px";
+    no.style.top = y + "px";
+  }
+
+  ["pointerenter", "pointerdown", "touchstart", "click", "focus"].forEach(ev =>
+    no.addEventListener(ev, dodge, { passive: false })
+  );
+  window.addEventListener("resize", () => {
+    if (!no.classList.contains("run")) return;
+    const r = no.getBoundingClientRect();
+    no.style.left = Math.min(r.left, window.innerWidth - r.width - 12) + "px";
+    no.style.top = Math.min(r.top, window.innerHeight - r.height - 12) + "px";
+  });
+
+  // Yes -> confetti + celebration
+  yes.addEventListener("click", () => {
+    no.style.display = "none";
+    show(3);
+    burst();
+    setTimeout(burst, 700);
+    setTimeout(burst, 1500);
+  });
+
+  // Confetti engine
+  const canvas = $("confetti"), ctx = canvas.getContext("2d");
+  let parts = [], running = false;
+  const colors = ["#ff6b9a", "#ffb3cd", "#ffd1e0", "#e0467c", "#ffd86b", "#ffffff", "#c9a7ff"];
+
+  function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  sizeCanvas();
+  addEventListener("resize", sizeCanvas);
+
+  function burst() {
+    const n = reduceMotion ? 40 : 120;
+    for (let i = 0; i < n; i++) {
+      const fromLeft = i % 2 === 0;
+      const angle = (fromLeft ? -1.0 : -Math.PI + 1.0) + (Math.random() - 0.5) * 0.9;
+      const speed = 8 + Math.random() * 10;
+      parts.push({
+        x: fromLeft ? 0 : innerWidth,
+        y: innerHeight * 0.85,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 6,
+        size: 6 + Math.random() * 8,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - 0.5) * 0.3,
+        color: colors[(Math.random() * colors.length) | 0],
+        heart: Math.random() < 0.35,
+        life: 1
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+
+  function drawHeart(s) {
+    ctx.beginPath();
+    ctx.moveTo(0, s / 4);
+    ctx.bezierCurveTo(0, -s / 4, -s / 2, -s / 4, -s / 2, s / 8);
+    ctx.bezierCurveTo(-s / 2, s / 2, 0, s * 0.7, 0, s * 0.9);
+    ctx.bezierCurveTo(0, s * 0.7, s / 2, s / 2, s / 2, s / 8);
+    ctx.bezierCurveTo(s / 2, -s / 4, 0, -s / 4, 0, s / 4);
+    ctx.fill();
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 40);
+    for (const p of parts) {
+      p.vy += 0.28; p.vx *= 0.992; p.vy *= 0.992;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      p.life -= 0.004;
+      ctx.save();
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.heart) drawHeart(p.size * 1.6);
+      else ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      ctx.restore();
+    }
+    if (parts.length) requestAnimationFrame(tick);
+    else { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+})();
+</script>
+</body>
+</html>
